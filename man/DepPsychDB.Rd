@@ -8,8 +8,7 @@
 An object of class \code{data.frame} with 411 rows and 20 columns.
 }
 \source{
-Meta-Analytic Depression Psychotherapy Database, maintained by VU
-Amsterdam Clinical Psychology and Psychotherapy.
+Meta-Analytic Depression Psychotherapy Database, maintained by the VU University Amsterdam.
 }
 \usage{
 data(DepPsychDB)

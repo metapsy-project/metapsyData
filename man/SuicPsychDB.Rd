@@ -5,10 +5,10 @@
 \alias{SuicPsychDB}
 \title{Meta-Analytic Suicide Prevention Database Dataset}
 \format{
-An object of class \code{escalc} (inherits from \code{data.frame}) with 113 rows and 46 columns.
+An object of class \code{escalc} (inherits from \code{data.frame}) with 113 rows and 21 columns.
 }
 \source{
-Meta-Analytic Suicide Prevention Database.
+Meta-Analytic Suicide Prevention Database, maintained by the VU University Amsterdam and 113 Zelfmoordpreventie.
 }
 \usage{
 data(SuicPsychDB)

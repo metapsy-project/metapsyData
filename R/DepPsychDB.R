@@ -1,7 +1,6 @@
 #' Meta-Analytic Depression Psychotherapy Database Dataset
 #'
-#' @source Meta-Analytic Depression Psychotherapy Database, maintained by VU
-#' Amsterdam Clinical Psychology and Psychotherapy.
+#' @source Meta-Analytic Depression Psychotherapy Database, maintained by the VU University Amsterdam.
 #'
 #' @usage data(DepPsychDB)
 #'

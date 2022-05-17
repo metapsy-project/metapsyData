@@ -13,5 +13,5 @@
 #' open_app()
 
 open_app = function(){
-  utils::browseURL("http://evidencebasedpsychotherapies.shinyapps.io/metapsy/")
+  utils::browseURL("https://www.metapsy.org")
 }

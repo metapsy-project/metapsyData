@@ -1,7 +1,7 @@
-Package: MetaPsyR
+Package: metapsyData
 Type: Package
-Title: Access the Meta-Analytic Psychotherapy Database
-Author: Mathias Harrer, David Daniel Ebert, Pim Cuijpers
+Title: Access the Meta-Analytic Psychotherapy Databases
+Author: Mathias Harrer, David Daniel Ebert, Eirini Karyotaki, Pim Cuijpers
 Version: 0.1.0
 Depends: R (>= 3.5)
 Authors@R: c(
@@ -10,8 +10,10 @@ Authors@R: c(
     person("Eirini", "Karyotaki", email = "e.karyotaki@vu.nl", role = "aut"),
     person("Pim", "Cuijpers", email = "p.cuijpers@vu.nl", role = "aut"))
 Maintainer: Mathias Harrer <mathias.harrer@fau.de>
-Description: Access the METAPSY Meta-Analytic Psychotherapy Database directly in R.
+Description: Access the Metapsy meta-analytic psychotherapy databases directly in R.
 License: MIT + file LICENSE
+Imports: 
+  crayon
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
