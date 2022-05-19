@@ -14,7 +14,7 @@ if (!require("devtools"))
 devtools::install_github("metapsy-project/metapsyData")
 ```
 
-The `metapsyData` package allows to access the Metapsy meta-analytic psychotherapy databases direct in your `R` environment. Once installed, simply run the `data` function (e.g. `data(DepPsychDB)`) to save the data locally. The documentation of the package is also hosted by [rdrr.io](https://rdrr.io/github/metapsy-project/metapsyData/).
+The `metapsyData` package allows to access the Metapsy meta-analytic psychotherapy databases direct in your `R` environment. Once installed, simply run the `data` function (e.g. `data(depression)`) to save the data locally. The documentation of the package is also hosted by [rdrr.io](https://rdrr.io/github/metapsy-project/metapsyData/).
 
 The interactive Metapsy web application ([metapsy.org](https://www.metapsy.org/)) uses `metapsyData` in the background. You can open the Metapsy website in `R` by running `open_app()`.
 
