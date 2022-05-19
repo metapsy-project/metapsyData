@@ -2,8 +2,8 @@
 #'
 #' @source Meta-Analytic Depression Psychotherapy Database, maintained by the VU University Amsterdam.
 #'
-#' @usage data(DepPsychDB)
+#' @usage data(depression)
 #'
 #' @author Pim Cuijpers
 #'
-"DepPsychDB"
+"depression"

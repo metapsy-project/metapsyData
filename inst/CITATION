@@ -12,6 +12,6 @@ citEntry(entry = "Manual",
 
          textVersion  =
            paste("Harrer, M., Ebert, D. D., Karyotaki, E., Cuijpers, P. (2022).",
-                 "MetaPsyR: Access the Meta-Analytic Psychotherapy Databases.",
+                 "metapsyData: Access the Meta-Analytic Psychotherapy Databases.",
                  "R package version 0.1.0. URL metapsy.org/r-package.")
 )
