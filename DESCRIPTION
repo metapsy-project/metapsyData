@@ -2,7 +2,7 @@ Package: metapsyData
 Type: Package
 Title: Access the Meta-Analytic Psychotherapy Databases
 Author: Mathias Harrer, Eirini Karyotaki, Pim Cuijpers
-Version: 0.1.0
+Version: 0.1.1
 Depends: R (>= 3.5)
 Authors@R: c(
     person("Mathias", "Harrer", email = "mathias.harrer@fau.de", role = "cre", comment = c(ORCID = "0000-0001-7016-2687")),
