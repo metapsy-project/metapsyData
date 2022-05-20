@@ -3,7 +3,7 @@
 </h1> <a href='https://metapsy.org'><img src='https://metapsytools.protectlab.org/logo.png' align="right" height="139" /></a>
 
 ![R CMD Check](https://img.shields.io/badge/R%20CMD%20Check-passing-brightgreen)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5171880.svg)](https://doi.org/10.5281/zenodo.5171880)
+[![DOI](https://img.shields.io/badge/DOI-10.5281/zenodo.6566924-blue)](https://doi.org/10.5281/zenodo.6566924)
 
 This package allows you to access the meta-analytic psychotherapy databases in R. To install the `metapsyData` package, use the following code:
 
