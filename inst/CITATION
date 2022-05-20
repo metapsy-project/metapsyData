@@ -3,15 +3,13 @@ citHeader("To cite 'metapsyData' in publications use:")
 citEntry(entry = "Manual",
          title        = "metapsyData: Access the Meta-Analytic Psychotherapy Databases",
          author       = personList(as.person("Mathias Harrer"),
-                                   as.person("David Ebert"),
                                    as.person("Eirini Karyotaki"),
                                    as.person("Pim Cuijpers")),
          year         = "2022",
-         note         = "R package version 0.1.0",
          url          = "https://www.metapsy.org/r-package",
 
          textVersion  =
-           paste("Harrer, M., Ebert, D. D., Karyotaki, E., Cuijpers, P. (2022).",
+           paste("Harrer, M., Karyotaki, E., Cuijpers, P. (2022).",
                  "metapsyData: Access the Meta-Analytic Psychotherapy Databases.",
-                 "R package version 0.1.0. URL metapsy.org/r-package.")
+                 "URL metapsy.org/r-package.")
 )
