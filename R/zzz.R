@@ -2,6 +2,6 @@
   packageStartupMessage(crayon::green("\u2713"),
                         crayon::cyan(" Loading "),
                         crayon::cyan$bold("{metapsyData}"),
-                        crayon::cyan(" 0.1.1 [BETA]. \n \u2192 For help, go to "),
+                        crayon::cyan(" 0.1.2 [BETA]. \n \u2192 For help, go to "),
                         crayon::green("metapsy.org/r-package"))
 }
