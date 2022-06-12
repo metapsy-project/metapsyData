@@ -1,0 +1,23 @@
+template:
+  includes:
+    in_header: <script src="extra_script_header.js"></script>
+    after_body: <script src="extra_script.js"></script>
+  bootstrap: 5
+  bootswatch: flatly
+  bslib:
+    pkgdown-nav-height: 100px
+    base_font: {google: "Fira Sans"}
+    heading_font: {google: "Fira Sans"}
+    code_font: {google: "Fira Code"}
+    primary: "#2a5252"
+navbar:
+  structure:
+    left: [intro, reference]
+    right: [search, github, vu]
+footer:
+  structure:
+    left: developed_by
+    right: null
+
+
+
