@@ -4,6 +4,7 @@
 
 ![R CMD Check](https://img.shields.io/badge/R%20CMD%20Check-passing-brightgreen)
 [![DOI](https://img.shields.io/badge/DOI-10.5281/zenodo.6566924-blue)](https://doi.org/10.5281/zenodo.6566924)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/68f8ecb5-abc5-4cd3-a3e3-0d0526768abf/deploy-status)](https://app.netlify.com/sites/metapsydata/deploys)
 
 This package allows you to access the meta-analytic psychotherapy databases in R. To install the `metapsyData` package, use the following code:
 
