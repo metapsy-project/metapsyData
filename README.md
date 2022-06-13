@@ -10,15 +10,31 @@ This package allows you to access the meta-analytic psychotherapy databases in R
 ```r
 if (!require("devtools"))
   install.packages("devtools")
-
 devtools::install_github("metapsy-project/metapsyData")
 ```
 
-The `metapsyData` package allows to access the Metapsy meta-analytic psychotherapy databases direct in your `R` environment. Once installed, simply run the `data` function (e.g. `data(depression)`) to save the data locally. The documentation of the package is also hosted by [rdrr.io](https://rdrr.io/github/metapsy-project/metapsyData/).
+The `metapsyData` package allows to access the Metapsy meta-analytic psychotherapy databases direct in your `R` environment. Once installed, simply use the `getData` function and insert the [database shorthand](https://docs.metapsy.org/databases/#shorthand) to save the data locally. The documentation of the package is also hosted by [rdrr.io](https://rdrr.io/github/metapsy-project/metapsyData/).
 
-The interactive Metapsy web application ([metapsy.org](https://www.metapsy.org/)) uses `metapsyData` in the background. You can open the Metapsy website in `R` by running `open_app()`.
+To search for available databases in `metapsyData` and their shorthands, run the `listData()` function. All databases included in `metapsyData` come with an extensive documentation entry on [docs.metapsy.org](https://docs.metapsy.org/databases).
 
-The raw data files can be accessed in the associated GitHub repository under `data`. To search for available databases in `metapsyData`, type in `metapsyData::` in your RStudio console.
+## Usage Example
+
+```
+# List all available databases
+listData()
+
+# Get latest version of the 'depression-psyctr' database
+d <- getData("depression-psyctr")
+
+# Get version 22.2 of the 'depression-psyctr' database
+d <- getData("depression-psyctr", version = "22.2")
+
+# Show variable description
+variableDescription(d)
+
+# Open online documentation
+openDocs(d)
+```
 
 ## Repository Rules
 

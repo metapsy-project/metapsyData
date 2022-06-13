@@ -6,10 +6,10 @@ citEntry(entry = "Manual",
                                    as.person("Eirini Karyotaki"),
                                    as.person("Pim Cuijpers")),
          year         = "2022",
-         url          = "https://www.metapsy.org/r-package",
+         url          = "https://data.metapsy.org",
 
          textVersion  =
            paste("Harrer, M., Karyotaki, E., Cuijpers, P. (2022).",
                  "metapsyData: Access the Meta-Analytic Psychotherapy Databases.",
-                 "URL metapsy.org/r-package.")
+                 "URL data.metapsy.org.")
 )

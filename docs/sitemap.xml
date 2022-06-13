@@ -16,12 +16,30 @@
     <loc>/reference/depression.html</loc>
   </url>
   <url>
+    <loc>/reference/getData.html</loc>
+  </url>
+  <url>
     <loc>/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/listData.html</loc>
+  </url>
+  <url>
+    <loc>/reference/openDocs.html</loc>
   </url>
   <url>
     <loc>/reference/open_app.html</loc>
   </url>
   <url>
+    <loc>/reference/pipe.html</loc>
+  </url>
+  <url>
+    <loc>/reference/print.variableDescription.html</loc>
+  </url>
+  <url>
     <loc>/reference/suicide.html</loc>
+  </url>
+  <url>
+    <loc>/reference/variableDescription.html</loc>
   </url>
 </urlset>

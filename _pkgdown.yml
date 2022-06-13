@@ -12,12 +12,17 @@ template:
     primary: "#2a5252"
 navbar:
   structure:
-    left: [intro, reference]
+    left: [reference]
     right: [search, github, vu]
 footer:
   structure:
     left: developed_by
     right: null
-
+reference:
+- contents:
+  - listData
+  - getData
+  - openDocs
+  - variableDescription
 
 
