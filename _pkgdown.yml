@@ -9,7 +9,7 @@ template:
     base_font: {google: "Fira Sans"}
     heading_font: {google: "Fira Sans"}
     code_font: {google: "Fira Code"}
-    primary: "#2a5252"
+    primary: "#313f45"
 navbar:
   structure:
     left: [reference]
