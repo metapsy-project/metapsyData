@@ -139,11 +139,17 @@ getData = function(shorthand,
   # Parse numerics
   apply(data, 2, function(x){
     suppressWarnings({
-      readr::parse_number(x, locale = locale(decimal_mark = ","))
+      readr::parse_number(x, locale = readr::locale(decimal_mark = ","))
     }) -> col
     ifelse(is.null(attr(col, "problems")), return(col), return(x))
   }, simplify = FALSE) %>%
     as.data.frame() -> dataClean
+
+  # study and .id are never parsed
+  within(dataClean, {
+    study = data$study
+    .id = data$.id
+  }) -> dataClean
 
 
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

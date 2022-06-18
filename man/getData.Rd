@@ -53,8 +53,7 @@ d <- getData("depression-psyctr")
 variableDescription(d)
 
 # Open online documentation
-openDocs(d)
-}
+openDocs(d)}
 
 }
 \seealso{
