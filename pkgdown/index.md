@@ -30,14 +30,15 @@ listData()
 # Get latest version of the 'depression-psyctr' database
 d <- getData("depression-psyctr")
 
-# Get version 22.2 of the 'depression-psyctr' database
-d <- getData("depression-psyctr", version = "22.2")
-
 # Show variable description
-variableDescription(d)
+d$variableDescription()
 
 # Open online documentation
-openDocs(d)
+d$openDocumentation()
+
+# Analyze using metapsyTools
+library(metapsyTools)
+runMetaAnalysis(d)
 ```
 
 <br></br>
