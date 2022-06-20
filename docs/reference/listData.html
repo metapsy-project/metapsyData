@@ -64,8 +64,7 @@ along with a URL for the database documentation entry.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="getData.html">getData</a></code>, <code><a href="variableDescription.html">variableDescription</a></code>,
-<code><a href="openDocs.html">openDocs</a></code></p></div>
+    <div class="dont-index"><p><code><a href="getData.html">getData</a></code></p></div>
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
@@ -81,14 +80,18 @@ along with a URL for the database documentation entry.</p>
 <span class="r-in"><span class="co"># Get latest version of the 'depression-psyctr' database</span></span>
 <span class="r-in"><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="getData.html">getData</a></span><span class="op">(</span><span class="st">"depression-psyctr"</span><span class="op">)</span></span>
 <span class="r-in"></span>
-<span class="r-in"><span class="co"># Get version 22.2 of the 'depression-psyctr' database</span></span>
-<span class="r-in"><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="getData.html">getData</a></span><span class="op">(</span><span class="st">"depression-psyctr"</span><span class="op">)</span></span>
+<span class="r-in"><span class="co"># Get version 22.2.0 of the 'depression-psyctr' database</span></span>
+<span class="r-in"><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="getData.html">getData</a></span><span class="op">(</span><span class="st">"depression-psyctr"</span>, <span class="st">"22.2.0"</span><span class="op">)</span></span>
 <span class="r-in"></span>
 <span class="r-in"><span class="co"># Show variable description</span></span>
-<span class="r-in"><span class="fu"><a href="variableDescription.html">variableDescription</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span>
+<span class="r-in"><span class="va">d</span><span class="op">$</span><span class="fu">variableDescription</span><span class="op">(</span><span class="op">)</span></span>
 <span class="r-in"></span>
 <span class="r-in"><span class="co"># Open online documentation</span></span>
-<span class="r-in"><span class="fu"><a href="openDocs.html">openDocs</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span>
+<span class="r-in"><span class="va">d</span><span class="op">$</span><span class="fu">openDocumentation</span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-in"></span>
+<span class="r-in"><span class="co"># Analyze using metapsyTools</span></span>
+<span class="r-in"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/metapsy-project/metapsyTools" class="external-link">metapsyTools</a></span><span class="op">)</span></span>
+<span class="r-in"><span class="fu"><a href="https://rdrr.io/pkg/metapsyTools/man/runMetaAnalysis.html" class="external-link">runMetaAnalysis</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span>
 <span class="r-in"><span class="op">}</span></span>
 <span class="r-in"></span>
 </code></pre></div>

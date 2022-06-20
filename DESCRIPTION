@@ -15,7 +15,7 @@ Maintainer: Mathias Harrer <mathias.harrer@fau.de>
 Description: Access the Metapsy meta-analytic psychotherapy databases directly in R.
 License: MIT + file LICENSE
 Imports: 
-  crayon, RCurl, httr, jsonlite, 
+  crayon, RCurl, httr, jsonlite, R6,
   readr, utils, magrittr
 Encoding: UTF-8
 LazyData: true

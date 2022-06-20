@@ -4,7 +4,9 @@
 \alias{getData}
 \title{Import Metapsy databases into the R environment}
 \usage{
-getData(shorthand, version = NULL)
+getData(shorthand,
+        version = NULL,
+        include.metadata = TRUE)
 }
 \arguments{
 \item{shorthand}{\code{character}. The shorthand assigned to the database that
@@ -14,29 +16,53 @@ all available databases and their shortcodes can be accessed by running \code{\l
 
 \item{version}{\code{character}. The version number to be downloaded. Default is
 \code{NULL}, which downloads the latest version.}
+
+\item{include.metadata}{\code{logical}. If set to \code{TRUE}, the function will
+return an \code{\link[R6:R6Class]{R6::R6Class()}} object that includes metadata associated with the database
+version. See "Value".}
 }
 \value{
-Returns the selected database as a \code{data.frame} object. Metadata is added
-via attributes to the object:
+If \code{include.metadata} is set to \code{TRUE}, the \code{getData} function
+will return both the requested dataset itself, as well as the metadata associated
+within in it. Metadata items included by default are:
 \itemize{
-\item \code{attr(x,"databaseDoi")} returns the database/"concept" DOI.
-\item \code{attr(x,"versionDoi")} returns the database version DOI.
-\item \code{attr(x,"publicationDate")} returns the publication date of
-the database (version).
-\item \code{attr(x,"lastSearch")} returns the last search update.
-\item \code{attr(x,"documentation")} returns the URL to the documentation entry for
-the database.
+\item \code{database.doi}: The digital object identifier of the database ("Concept DOI"
+in the \href{https://zenodo.org/}{Zenodo API}. This DOI will always resolve to the
+latest database version).
+\item \code{documentation.url}: URL of the database documentation entry on the
+\href{https://docs.metapsy.org/databases/}{Metapsy Documentation page}.
+\item \code{github.repo.url}: URL of the specific Github repository state at which the
+database was released.
+\item \code{last.search}: Date of the last search.
+\item \code{last.updated}: Date of the last database updated (release).
+\item \code{license}: License of the database.
+\item \code{repository.download.url}: Link to download the entire database from Zenodo.
+\item \code{title}: Title of the database (including its version).
+\item \code{variable.description}: Description of the variables included in the dataset.
+\item \code{version}: Version of the database.
+\item \code{version.doi}: DOI associated with the specific version of the database. In contrast to
+the \code{database.doi}, this identifier will also link to this specific database version.
 }
+
+The returned \code{\link[R6:R6Class]{R6::R6Class()}} object also contains a few helpful functions,
+which can be called directly from the object:
+\itemize{
+\item \code{downloadZip()}: This will download the database (including metadata) as a
+.zip file from its Zenodo repository.
+\item \code{openDocumentation()}: This opens the database documentation entry on
+the \href{https://docs.metapsy.org/databases/}{Metapsy Documentation page}.
+\item \code{openGitRepo()}: This opens the Github repository of the database at the state of
+its release.
+\item \code{variableDescription()}: This prints a variable description of the database
+in the R Console.
+}
+
+If \code{include.metadata} is \code{FALSE}, the function will return the dataset
+as a simple \code{data.frame}.
 }
 \description{
 This function allows to download all publicly available versions of Metapsy
 databases into your R environment.
-}
-\details{
-After the databases has been downloaded and saved as an object,
-the \code{\link{variableDescription}} function can be used to print a
-variable description. The  \code{\link{openDocs}} function opens the
-online documentation entry for the database.
 }
 \examples{
 \dontrun{
@@ -46,19 +72,23 @@ listData()
 # Get latest version of the 'depression-psyctr' database
 d <- getData("depression-psyctr")
 
-# Get version 22.2 of the 'depression-psyctr' database
-d <- getData("depression-psyctr")
+# Get version 22.2.0 of the 'depression-psyctr' database
+d <- getData("depression-psyctr", "22.2.0")
 
 # Show variable description
-variableDescription(d)
+d$variableDescription()
 
 # Open online documentation
-openDocs(d)}
+d$openDocumentation()
+
+# Analyze using metapsyTools
+library(metapsyTools)
+runMetaAnalysis(d)
+}
 
 }
 \seealso{
-\code{\link{listData}}, \code{\link{variableDescription}},
-\code{\link{openDocs}}
+\code{\link{listData}}
 }
 \author{
 Mathias Harrer \email{mathias.h.harrer@gmail.com}

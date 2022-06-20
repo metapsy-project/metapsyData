@@ -18,20 +18,23 @@
 #' # Get latest version of the 'depression-psyctr' database
 #' d <- getData("depression-psyctr")
 #'
-#' # Get version 22.2 of the 'depression-psyctr' database
-#' d <- getData("depression-psyctr")
+#' # Get version 22.2.0 of the 'depression-psyctr' database
+#' d <- getData("depression-psyctr", "22.2.0")
 #'
 #' # Show variable description
-#' variableDescription(d)
+#' d$variableDescription()
 #'
 #' # Open online documentation
-#' openDocs(d)
+#' d$openDocumentation()
+#'
+#' # Analyze using metapsyTools
+#' library(metapsyTools)
+#' runMetaAnalysis(d)
 #' }
 #'
 #' @author Mathias Harrer \email{mathias.h.harrer@@gmail.com}
 #'
-#' @seealso \code{\link{getData}}, \code{\link{variableDescription}},
-#' \code{\link{openDocs}}
+#' @seealso \code{\link{getData}}
 #'
 #'
 #' @importFrom crayon green
