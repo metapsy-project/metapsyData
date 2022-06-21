@@ -53,6 +53,8 @@ which can be called directly from the object:
 the \href{https://docs.metapsy.org/databases/}{Metapsy Documentation page}.
 \item \code{openGitRepo()}: This opens the Github repository of the database at the state of
 its release.
+\item \code{returnMetadata()}: Returns the entire metadata stored in the \code{metapsyDatabase}
+R6 object as a \code{list}.
 \item \code{variableDescription()}: This prints a variable description of the database
 in the R Console.
 }

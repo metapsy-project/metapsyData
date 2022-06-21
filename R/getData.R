@@ -47,6 +47,8 @@
 #' the [Metapsy Documentation page](https://docs.metapsy.org/databases/).
 #' - `openGitRepo()`: This opens the Github repository of the database at the state of
 #' its release.
+#' - `returnMetadata()`: Returns the entire metadata stored in the `metapsyDatabase`
+#' R6 object as a `list`.
 #' - `variableDescription()`: This prints a variable description of the database
 #' in the R Console.
 #'
@@ -212,8 +214,22 @@ getData = function(shorthand,
                apply(df, 1, function(y){
                  message("- ", crayon::green(y["variable"]), ": ",
                          y["description"])
-               }) -> null
-    }))
+              }) -> null},
+             returnMetadata = function(){
+               with(as.list(self), {
+                 list(database.doi = database.doi,
+                      documentation.url = documentation.url,
+                      github.repo.url = github.repo.url,
+                      last.search = last.search,
+                      last.updated = last.updated,
+                      license = license,
+                      repository.download.url = repository.download.url,
+                      title = title,
+                      variable.description = variable.description,
+                      version = version,
+                      version.doi = version.doi)
+               })
+               }))
 
 
     # Collect metadata
