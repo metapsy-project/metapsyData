@@ -145,7 +145,7 @@ getData = function(shorthand,
   metadata = paste0(
     "https://zenodo.org/api/deposit/depositions?",
     "access_token=Bounk4ySHPIYxrFMWN49jyenJZ1Uy6t",
-    "Bhico7tuZ3iW6cp1hJ3m9FIY6HcvX&all_versions=1"
+    "Bhico7tuZ3iW6cp1hJ3m9FIY6HcvX&all_versions=1&size=10000"
   ) %>% httr::GET() %>%
     {jsonlite::fromJSON(rawToChar(.[["content"]]))} %>%
     {.[.$conceptdoi == dataIndex[shorthand, "doi"],]}
