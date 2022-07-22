@@ -24,8 +24,8 @@ To search for available databases in `metapsyData` and their shorthands, run the
 # List all available databases
 listData()
 
-# Get latest version of the 'depression-psyctr' database
-d <- getData("depression-psyctr")
+# Get latest version of the 'inpatients' database
+d <- getData("inpatients")
 
 # Show variable description
 d$variableDescription()
