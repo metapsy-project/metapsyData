@@ -28,7 +28,7 @@ Databases loaded into the R environment can directly be analyzed using functions
 listData()
 
 # Get latest version of the 'inpatients' database
-d <- getData("inpatients")
+d <- getData("depression-inpatients")
 
 # Show variable description
 d$variableDescription()
