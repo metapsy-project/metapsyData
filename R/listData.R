@@ -18,8 +18,8 @@
 #' # Get latest version of the 'depression-psyctr' database
 #' d <- getData("depression-psyctr")
 #'
-#' # Get version 22.2.0 of the 'depression-psyctr' database
-#' d <- getData("depression-psyctr", "22.2.0")
+#' # Get version 22.2.0 of the 'depression-inpatients' database
+#' d <- getData("depression-inpatients", "22.2.0")
 #'
 #' # Show variable description
 #' d$variableDescription()
@@ -29,7 +29,7 @@
 #'
 #' # Analyze using metapsyTools
 #' library(metapsyTools)
-#' runMetaAnalysis(d)
+#' runMetaAnalysis(d, which.run = "combined")
 #' }
 #'
 #' @author Mathias Harrer \email{mathias.h.harrer@@gmail.com}
@@ -58,6 +58,44 @@ listData = function(){
 
   message("- ", crayon::green("[OK] "),
           "Retrieving available databases...")
+  class(dataIndex) = c("listData", "data.frame")
   return(dataIndex)
 
 }
+
+
+
+#' Print `listData` objects
+#'
+#' Prints the available databases returned by [listData()].
+#'
+#' @param x An object of class `listData`.
+#' @param ... Additional arguments.
+#'
+#' @author Mathias Harrer \email{mathias.h.harrer@@gmail.com},
+#' Paula Kuper \email{paula.r.kuper@@gmail.com}, Pim Cuijpers \email{p.cuijpers@@vu.nl}
+#'
+#' @importFrom crayon green blue bold cyan
+#' @export
+#' @method print listData
+
+print.listData = function(x, ...){
+  data = x[-which(x[,1] == "template"),]
+  message(crayon::blue(
+    crayon::bold("\n", "Available databases", "\n",
+                 "-------------------")))
+  apply(data, 1, function(y) {
+    paste0(
+      crayon::bold(
+        crayon::green(paste(y[1]))),
+      "\n",
+      crayon::cyan(paste0("\u2192 ", y[2], "\n")))
+    }) -> res
+  message(res)
+  message(
+    "To retrieve the data, use the database shorthand in ",
+    crayon::blue("getData()"), "; \n \u2192 e.g. ",
+    crayon::blue('getData("depression-inpatients")'), ".")
+}
+
+

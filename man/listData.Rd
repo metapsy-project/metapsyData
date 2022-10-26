@@ -23,8 +23,8 @@ listData()
 # Get latest version of the 'depression-psyctr' database
 d <- getData("depression-psyctr")
 
-# Get version 22.2.0 of the 'depression-psyctr' database
-d <- getData("depression-psyctr", "22.2.0")
+# Get version 22.2.0 of the 'depression-inpatients' database
+d <- getData("depression-inpatients", "22.2.0")
 
 # Show variable description
 d$variableDescription()
@@ -34,7 +34,7 @@ d$openDocumentation()
 
 # Analyze using metapsyTools
 library(metapsyTools)
-runMetaAnalysis(d)
+runMetaAnalysis(d, which.run = "combined")
 }
 
 }
