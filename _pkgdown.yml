@@ -7,6 +7,7 @@ template:
   bootstrap: 5
   bootswatch: flatly
   bslib:
+    primary: "#313f45"
     pkgdown-nav-height: 100px
     base_font: {google: {family: "Fira Sans", wght: "100;200;300;400;500;600;700;800;900"}}
     heading_font: {google: {family: "Roboto Slab", wght: "100;200;300;400;500;600;700;800;900"}}
