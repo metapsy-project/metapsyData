@@ -184,15 +184,15 @@ getData = function(shorthand,
                         github.repo.url = NA, documentation.url = NA,
                         license = NA, variable.description = NA){
                  self$data = data;
-                 self$title = title; self$version = version;
-                 self$last.updated = last.updated;
+                 self$title = title[1]; self$version = version[1];
+                 self$last.updated = last.updated[1];
                  self$last.search = last.search;
-                 self$database.doi = database.doi;
-                 self$version.doi = version.doi;
+                 self$database.doi = database.doi[1];
+                 self$version.doi = version.doi[1];
                  self$repository.download.url = repository.download.url;
                  self$github.repo.url = github.repo.url;
                  self$documentation.url = documentation.url;
-                 self$license = license;
+                 self$license = license[1];
                  self$variable.description = variable.description
                },
              downloadZip = function(){
