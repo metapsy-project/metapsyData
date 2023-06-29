@@ -148,7 +148,8 @@ getData = function(shorthand,
     "Bhico7tuZ3iW6cp1hJ3m9FIY6HcvX&all_versions=1&size=10000"
   ) %>% httr::GET() %>%
     {jsonlite::fromJSON(rawToChar(.[["content"]]))} %>%
-    {.[.$conceptdoi == dataIndex[shorthand, "doi"],]}
+    {.[.$conceptdoi == dataIndex[shorthand, "doi"],]} %>%
+    {.[!is.na(.$conceptdoi),]}
 
 
   # Print retrieved version
