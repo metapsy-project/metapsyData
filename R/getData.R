@@ -98,6 +98,11 @@ getData = function(shorthand,
                    version = NULL,
                    include.metadata = TRUE){
 
+
+  if (missing(shorthand)){
+    stop("No database shorthand provided.")
+  }
+
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
   #                                                             #
   #   Version Check                                             #
