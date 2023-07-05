@@ -141,18 +141,28 @@ code a:hover {
   text-decoration: underline;
 }
 
-code {
-  font-family: "SF Mono Regular";
-  font-weight: 600;
-  color: #474747;
-}
 
 pre.sourceCode {
   padding: 1rem !important;
 }
 
 .fu {
-  font-family: "SF Mono Bold";
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 600;
+}
+
+.kw {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 600;
+}
+
+p > code {
+  font-weight: 600;
+}
+
+code {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  color: #474747;
 }
 
 /* Font */
