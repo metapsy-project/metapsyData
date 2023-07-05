@@ -61,11 +61,10 @@ p, #main li {
     font-family: var(--font-family),sans-serif;
     -webkit-font-smoothing: antialiased;
     box-sizing: border-box;
-    font-size: 18px !important;
     margin-top: 0;
     color: var(--text-color);
     margin-bottom: 10px;
-    font-size: 20px !important;
+    font-size: 18px !important;
 }
 
 .section {
@@ -148,8 +147,8 @@ code a:hover {
 
 code {
   font-family: "SF Mono Regular";
-  font-weight: 400;
-  color: #636363;
+  font-weight: 600;
+  color: #474747;
 }
 
 pre.sourceCode {

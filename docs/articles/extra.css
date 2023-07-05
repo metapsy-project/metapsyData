@@ -65,7 +65,6 @@ p, #main li {
     margin-top: 0;
     color: var(--text-color);
     margin-bottom: 10px;
-    font-size: 20px !important;
 }
 
 
@@ -144,8 +143,8 @@ code a:hover {
 
 code {
   font-family: "SF Mono Regular";
-  font-weight: 400;
-  color: #636363;
+  font-weight: 600;
+  color: #474747;
 }
 
 pre.sourceCode {
