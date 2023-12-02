@@ -315,6 +315,8 @@ getData = function(shorthand,
 #' `metapsyDatabase` (i.e. if `include.metadata=TRUE`).
 #'
 #' @param x A database of class `metapsyDatabase` imported using [getData()].
+#' @param first Number of first rows to be printed.
+#' @param last Number of last rows to be printed.
 #' @param ... Additional arguments.
 #'
 #' @author Mathias Harrer \email{mathias.h.harrer@@gmail.com},
@@ -324,11 +326,18 @@ getData = function(shorthand,
 #' @export
 #' @method print metapsyDatabase
 
-print.metapsyDatabase = function(x, ...){
-  print(x$data)
+print.metapsyDatabase = function(x, first=NULL, last=NULL, ...){
+  if (all(is.null(first),is.null(last))) {
+    print(x$data)
+  } else {
+    if (!is.null(first)) {
+      print(x$data[1:first,])
+    }
+    if (!is.null(last)) {
+      print(x$data[(nrow(x$data)-last+1):nrow(x$data),])
+    }
+  }
 }
-
-
 
 
 

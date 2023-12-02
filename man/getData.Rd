@@ -18,7 +18,7 @@ all available databases and their shortcodes can be accessed by running \code{\l
 \code{NULL}, which downloads the latest version.}
 
 \item{include.metadata}{\code{logical}. If set to \code{TRUE}, the function will
-return an \link{R6Class} object that includes metadata associated with the database
+return an \code{\link[R6:R6Class]{R6::R6Class()}} object that includes metadata associated with the database
 version. See "Value".}
 }
 \value{

@@ -4,10 +4,14 @@
 \alias{print.metapsyDatabase}
 \title{Print \code{metapsyDatabase} objects}
 \usage{
-\method{print}{metapsyDatabase}(x, ...)
+\method{print}{metapsyDatabase}(x, first = NULL, last = NULL, ...)
 }
 \arguments{
 \item{x}{A database of class \code{metapsyDatabase} imported using \code{\link[=getData]{getData()}}.}
+
+\item{first}{Number of first rows to be printed.}
+
+\item{last}{Number of last rows to be printed.}
 
 \item{...}{Additional arguments.}
 }
