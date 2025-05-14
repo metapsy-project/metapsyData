@@ -272,7 +272,7 @@ getData = function(shorthand,
     dataIndex[shorthand, "repo"], "/", version, "/data.csv"
   ) %>% RCurl::getURL() %>%
     read.csv(text = ., sep = ";") %>%
-    {.[,1] = NULL;.}
+    {.[,"X"] = NULL;.}
 
   # Parse numerics
   apply(data, 2, function(x){
