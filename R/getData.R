@@ -289,6 +289,12 @@ getData = function(shorthand,
     .id = data$.id
   }) -> dataClean
 
+  # doses are also never parsed
+  if ("dose_arm1" %in% colnames(dataClean)){
+    dataClean$dose_arm1 = data$dose_arm1 }
+  if ("dose_arm2" %in% colnames(dataClean)){
+    dataClean$dose_arm2 = data$dose_arm2 }
+
   if (isTRUE(include.metadata)){
     metapsyDatabaseObject$data = dataClean
     return.obj = metapsyDatabaseObject
