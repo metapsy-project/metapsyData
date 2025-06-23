@@ -289,11 +289,19 @@ getData = function(shorthand,
     .id = data$.id
   }) -> dataClean
 
-  # doses are also never parsed
+  # Define other variables to never be parsed
+  if ("multi_arm1" %in% colnames(dataClean)){
+    dataClean$multi_arm1 = data$multi_arm1 }
+  if ("multi_arm2" %in% colnames(dataClean)){
+    dataClean$multi_arm2 = data$multi_arm2 }
   if ("dose_arm1" %in% colnames(dataClean)){
     dataClean$dose_arm1 = data$dose_arm1 }
   if ("dose_arm2" %in% colnames(dataClean)){
     dataClean$dose_arm2 = data$dose_arm2 }
+  if ("doi" %in% colnames(dataClean)){
+    dataClean$doi = data$doi }
+  if ("registration_number" %in% colnames(dataClean)){
+    dataClean$registration_number = data$registration_number }
 
   if (isTRUE(include.metadata)){
     metapsyDatabaseObject$data = dataClean
