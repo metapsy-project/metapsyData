@@ -298,6 +298,8 @@ getData = function(shorthand,
     dataClean$dose_arm1 = data$dose_arm1 }
   if ("dose_arm2" %in% colnames(dataClean)){
     dataClean$dose_arm2 = data$dose_arm2 }
+  if ("study_time_point" %in% colnames(dataClean)){
+    dataClean$study_time_point = data$study_time_point }
   if ("doi" %in% colnames(dataClean)){
     dataClean$doi = data$doi }
   if ("registration_number" %in% colnames(dataClean)){
