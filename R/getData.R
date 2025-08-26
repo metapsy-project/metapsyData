@@ -270,7 +270,7 @@ getData = function(shorthand,
   data = paste0(
     "https://raw.githubusercontent.com/metapsy-project/",
     dataIndex[shorthand, "repo"], "/", version, "/data.csv"
-  ) %>% RCurl::getURL() %>%
+  ) %>% RCurl::getURL(.encoding = "UTF-8") %>%
     read.csv(text = ., sep = ";") %>%
     {.[,"X"] = NULL;.}
 
