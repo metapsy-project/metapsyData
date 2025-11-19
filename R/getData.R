@@ -84,7 +84,7 @@
 #'
 #'
 #' @importFrom crayon green magenta
-#' @importFrom httr GET
+#' @importFrom httr GET status_code
 #' @importFrom jsonlite fromJSON
 #' @importFrom RCurl getURL
 #' @importFrom readr parse_number locale
@@ -163,7 +163,24 @@ getData = function(shorthand,
     )
     
     response = httr::GET(url)
-    page.data = jsonlite::fromJSON(rawToChar(response[["content"]]))
+    
+    if (httr::status_code(response) != 200) {
+      stop("Zenodo API returned status code ", httr::status_code(response), 
+           ". The API may be temporarily unavailable, likely due to rate limiting for your IP address. Please try again later.")
+    }
+    
+    response.content = rawToChar(response[["content"]])
+    if (grepl("^\\s*<!DOCTYPE", response.content) || grepl("^\\s*<html", response.content)) {
+      stop("Zenodo API returned HTML instead of JSON. This may indicate the API is temporarily unavailable or rate limiting requests. Please try again later.")
+    }
+    
+    page.data = tryCatch({
+      jsonlite::fromJSON(response.content)
+    }, error = function(e) {
+      stop("Failed to parse JSON response from Zenodo API. ",
+           "This may indicate the API is temporarily unavailable. ",
+           "Please try again later. Original error: ", e$message)
+    })
     
     if (is.null(page.data$hits) || length(page.data$hits$hits) == 0) {
       break
