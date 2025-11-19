@@ -88,7 +88,7 @@
 #' @importFrom jsonlite fromJSON
 #' @importFrom RCurl getURL
 #' @importFrom readr parse_number locale
-#' @importFrom utils read.csv browseURL
+#' @importFrom utils read.csv browseURL URLencode
 #' @importFrom R6 R6Class
 #'
 #' @export getData
@@ -147,23 +147,142 @@ getData = function(shorthand,
   #                                                             #
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-  metadata = paste0(
-    "https://zenodo.org/api/deposit/depositions?",
-    "access_token=Bounk4ySHPIYxrFMWN49jyenJZ1Uy6t",
-    "Bhico7tuZ3iW6cp1hJ3m9FIY6HcvX&all_versions=1&size=10000"
-  ) %>% httr::GET() %>%
-    {jsonlite::fromJSON(rawToChar(.[["content"]]))} %>%
-    {.[.$conceptdoi == dataIndex[shorthand, "doi"],]} %>%
-    {.[!is.na(.$conceptdoi),]}
+  target.doi = dataIndex[shorthand, "doi"]
+  all.records = list()
+  page = 1
+  size = 99
+  
+  repeat {
+    query = paste0("conceptdoi:\"", target.doi, "\"")
+    url = paste0(
+      "https://zenodo.org/api/records?",
+      "q=", utils::URLencode(query, reserved = TRUE),
+      "&size=", size,
+      "&page=", page,
+      "&all_versions=true"
+    )
+    
+    response = httr::GET(url)
+    page.data = jsonlite::fromJSON(rawToChar(response[["content"]]))
+    
+    if (is.null(page.data$hits) || length(page.data$hits$hits) == 0) {
+      break
+    }
+    
+    records = page.data$hits$hits
+    all.records = c(all.records, records)
+    
+    if (length(records) < size) {
+      break
+    }
+    page = page + 1
+  }
+  
+  if (length(all.records) == 0) {
+    stop("No metadata found for shorthand '", shorthand, "' with DOI '", target.doi, "'.")
+  }
+  
+  n.records = length(all.records$conceptdoi)
+  
+  metadata = data.frame(
+    conceptdoi = all.records$conceptdoi,
+    doi = all.records$doi,
+    modified = all.records$updated,
+    created = all.records$created,
+    id = all.records$id,
+    conceptrecid = all.records$conceptrecid,
+    doi_url = all.records$doi_url,
+    title = all.records$title,
+    stringsAsFactors = FALSE
+  )
+  
+  metadata$metadata = lapply(1:n.records, function(i) {
+    meta.df = all.records$metadata
+    list(
+      title = if (i <= nrow(meta.df) && !is.null(meta.df$title[i])) meta.df$title[i] else NA_character_,
+      doi = if (i <= nrow(meta.df) && !is.null(meta.df$doi[i])) meta.df$doi[i] else NA_character_,
+      publication_date = if (i <= nrow(meta.df) && !is.null(meta.df$publication_date[i])) meta.df$publication_date[i] else NA_character_,
+      description = if (i <= nrow(meta.df) && !is.null(meta.df$description[i])) meta.df$description[i] else NA_character_,
+      access_right = if (i <= nrow(meta.df) && !is.null(meta.df$access_right[i])) meta.df$access_right[i] else NA_character_,
+      creators = if (i <= nrow(meta.df) && !is.null(meta.df$creators[i])) meta.df$creators[i] else NA,
+      related_identifiers = if (i <= nrow(meta.df) && !is.null(meta.df$related_identifiers[i])) {
+        if (is.data.frame(meta.df$related_identifiers[i])) {
+          as.list(meta.df$related_identifiers[i, , drop = FALSE])
+        } else {
+          meta.df$related_identifiers[[i]]
+        }
+      } else {
+        list(list(identifier = NA_character_))
+      },
+      version = if (i <= nrow(meta.df) && !is.null(meta.df$version[i])) meta.df$version[i] else NA_character_,
+      license = if (i <= nrow(meta.df) && "id" %in% colnames(meta.df) && !is.null(meta.df$id[i])) meta.df$id[i] else NA_character_,
+      upload_type = if (i <= nrow(meta.df) && "resource_type.type" %in% colnames(meta.df) && !is.null(meta.df$`resource_type.type`[i])) meta.df$`resource_type.type`[i] else NA_character_
+    )
+  })
+  
+  metadata$files = lapply(1:n.records, function(i) {
+    if (!is.null(all.records$files) && i <= length(all.records$files) && !is.null(all.records$files[[i]])) {
+      file.df = all.records$files[[i]]
+      if (is.data.frame(file.df) && nrow(file.df) > 0) {
+        lapply(1:nrow(file.df), function(j) {
+          list(
+            links = list(
+              download = if (!is.null(file.df$self[j])) file.df$self[j] else NA_character_,
+              self = if (!is.null(file.df$self[j])) file.df$self[j] else NA_character_
+            ),
+            key = if (!is.null(file.df$key[j])) file.df$key[j] else NA_character_,
+            size = if (!is.null(file.df$size[j])) file.df$size[j] else NA_integer_,
+            checksum = if (!is.null(file.df$checksum[j])) file.df$checksum[j] else NA_character_
+          )
+        })
+      } else {
+        list()
+      }
+    } else {
+      list()
+    }
+  })
+  
+  if (!is.null(all.records$links)) {
+    metadata$links = lapply(1:n.records, function(i) {
+      if (is.data.frame(all.records$links) && i <= nrow(all.records$links)) {
+        as.list(all.records$links[i, , drop = FALSE])
+      } else {
+        list()
+      }
+    })
+  } else {
+    metadata$links = lapply(1:n.records, function(i) list())
+  }
+  
+  if (!is.null(all.records$state)) {
+    metadata$state = all.records$state
+  }
+  if (!is.null(all.records$submitted)) {
+    metadata$submitted = all.records$submitted
+  }
+  
+  metadata = metadata[metadata$conceptdoi == target.doi & !is.na(metadata$conceptdoi), ]
 
 
-  # Print retrieved version
+  versions = sapply(metadata$metadata, function(x) x$version)
+  
   if (is.null(version)) {
-    version = metadata$metadata$version[1]
+    version.nums = lapply(versions, function(v) {
+      as.numeric(strsplit(v, "\\.")[[1]])
+    })
+    max.len = max(sapply(version.nums, length))
+    version.nums = lapply(version.nums, function(vn) {
+      c(vn, rep(0, max.len - length(vn)))
+    })
+    max.version.idx = which.max(sapply(version.nums, function(vn) {
+      sum(vn * 10^((length(vn):1) - 1))
+    }))
+    version = versions[max.version.idx]
     message("- ", crayon::green("[OK] "), "Retrieving latest version (",
             version, ")...")
   } else {
-    if (!version %in% metadata$metadata$version){
+    if (!version %in% versions){
       stop("The specified database version was not found.")
     }
     message("- ", crayon::green("[OK] "), "Retrieving version ",
@@ -238,26 +357,58 @@ getData = function(shorthand,
                }))
 
 
-    # Collect metadata
-    metadata %>%
-      {.[.$metadata$version == version,]} %>%
-      with(.,{
-        metapsyDatabase$new(
-          NA, title, metadata$version, modified %>% as.Date(),
-          paste0("https://raw.githubusercontent.com/metapsy-project/",
-                 dataIndex[shorthand, "repo"], "/", version,
-                 "/metadata/last_search.txt") %>% RCurl::getURL() %>% as.Date(),
-          conceptdoi, doi, files[[1]]$links$download,
-          metadata$related_identifiers[[1]]$identifier,
-          paste0("https://docs.metapsy.org/databases/",
-                 dataIndex[shorthand, "url"], "/"),
-          metadata$license,
-          paste0("https://raw.githubusercontent.com/metapsy-project/",
-                 dataIndex[shorthand, "repo"], "/", version,
-                 "/metadata/variable_description.json") %>%
-            RCurl::getURL() %>%
-            jsonlite::fromJSON())
-      }) -> metapsyDatabaseObject
+    version.match = sapply(metadata$metadata, function(x) x$version) == version
+    metadata.filtered = metadata[version.match, ]
+    
+    if (nrow(metadata.filtered) == 0) {
+      stop("Version '", version, "' not found in metadata.")
+    }
+    
+    row = metadata.filtered[1, ]
+    row.metadata = row$metadata[[1]]
+    row.files = row$files[[1]]
+    
+    download.url = if (length(row.files) > 0 && !is.null(row.files[[1]]$links$download)) {
+      row.files[[1]]$links$download
+    } else if (length(row.files) > 0 && !is.null(row.files[[1]]$links$self)) {
+      row.files[[1]]$links$self
+    } else {
+      NA_character_
+    }
+    
+    related.id = if (!is.null(row.metadata$related_identifiers) && length(row.metadata$related_identifiers) > 0) {
+      if (is.list(row.metadata$related_identifiers[[1]]) && !is.null(row.metadata$related_identifiers[[1]]$identifier)) {
+        row.metadata$related_identifiers[[1]]$identifier
+      } else if (is.character(row.metadata$related_identifiers[[1]])) {
+        row.metadata$related_identifiers[[1]]
+      } else {
+        NA_character_
+      }
+    } else {
+      NA_character_
+    }
+    
+    metapsyDatabase$new(
+      NA, 
+      row$title, 
+      row.metadata$version, 
+      row$modified %>% as.Date(),
+      paste0("https://raw.githubusercontent.com/metapsy-project/",
+             dataIndex[shorthand, "repo"], "/", version,
+             "/metadata/last_search.txt") %>% RCurl::getURL() %>% as.Date(),
+      row$conceptdoi, 
+      row$doi, 
+      download.url,
+      related.id,
+      paste0("https://docs.metapsy.org/databases/",
+             dataIndex[shorthand, "url"], "/"),
+      row.metadata$license,
+      paste0("https://raw.githubusercontent.com/metapsy-project/",
+             dataIndex[shorthand, "repo"], "/", version,
+             "/metadata/variable_description.json") %>%
+        RCurl::getURL() %>%
+        jsonlite::fromJSON()
+    ) -> metapsyDatabaseObject
   }
 
 
