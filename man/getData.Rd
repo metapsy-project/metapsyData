@@ -66,6 +66,35 @@ as a simple \code{data.frame}.
 This function allows to download all publicly available versions of Metapsy
 databases into your R environment.
 }
+\details{
+The function can work with or without a Zenodo API access token. While a token
+is not required, setting one provides several benefits:
+
+\itemize{
+\item \strong{Higher rate limits}: Authenticated requests can fetch up to 100 records
+per page, compared to 25 records per page for unauthenticated requests. This
+significantly speeds up data retrieval for databases with many versions.
+\item \strong{Reduced rate limiting}: Authenticated requests are less likely to hit
+Zenodo's rate limits, especially when fetching multiple pages of results.
+\item \strong{Automatic pagination}: The function automatically handles pagination to
+retrieve all versions, but this is faster with a token due to larger page sizes.
+}
+
+If no token is set, the function will optionally prompt you to set one. You can
+also set or update your token at any time using \code{\link[=updateZenodoAccessToken]{updateZenodoAccessToken()}}.
+
+To create a Zenodo API access token:
+\enumerate{
+\item Log into your Zenodo account.
+\item Visit \href{https://zenodo.org/account/settings/applications/tokens/new/}{this page}.
+\item Create a new personal access token.
+\item Copy the token and use \code{\link[=updateZenodoAccessToken]{updateZenodoAccessToken()}} to save it.
+}
+
+The token will be saved to your \code{.Renviron} file for permanent storage across
+R sessions. The function automatically validates tokens and will clear invalid
+or expired tokens.
+}
 \examples{
 \dontrun{
 # List all available databases
@@ -74,8 +103,8 @@ listData()
 # Get latest version of the 'depression-psyctr' database
 d <- getData("depression-psyctr")
 
-# Get version 22.2.0 of the 'depression-psyctr' database
-d <- getData("depression-psyctr", "22.2.0")
+# Get version 24.0.2 of the 'depression-psyctr' database
+d <- getData("depression-psyctr", "24.0.2")
 
 # Show variable description
 d$variableDescription()
@@ -90,8 +119,8 @@ runMetaAnalysis(d)
 
 }
 \seealso{
-\code{\link{listData}}
+\code{\link{listData}}, \code{\link{updateZenodoAccessToken}}
 }
 \author{
-Mathias Harrer \email{mathias.h.harrer@gmail.com}
+Mathias Harrer \email{m.harrer@vu.nl}
 }

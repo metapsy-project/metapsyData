@@ -12,7 +12,7 @@ databases into your R environment."><meta property="og:image" content="/logo.png
     
     <a class="navbar-brand me-2" href="../index.html">metapsyData</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -113,12 +113,33 @@ in the R Console.</p></li>
 as a simple <code>data.frame</code>.</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>The function can work with or without a Zenodo API access token. While a token
+is not required, setting one provides several benefits:</p>
+<ul><li><p><strong>Higher rate limits</strong>: Authenticated requests can fetch up to 100 records
+per page, compared to 25 records per page for unauthenticated requests. This
+significantly speeds up data retrieval for databases with many versions.</p></li>
+<li><p><strong>Reduced rate limiting</strong>: Authenticated requests are less likely to hit
+Zenodo's rate limits, especially when fetching multiple pages of results.</p></li>
+<li><p><strong>Automatic pagination</strong>: The function automatically handles pagination to
+retrieve all versions, but this is faster with a token due to larger page sizes.</p></li>
+</ul><p>If no token is set, the function will optionally prompt you to set one. You can
+also set or update your token at any time using <code><a href="updateZenodoAccessToken.html">updateZenodoAccessToken()</a></code>.</p>
+<p>To create a Zenodo API access token:</p><ol><li><p>Log into your Zenodo account.</p></li>
+<li><p>Visit <a href="https://zenodo.org/account/settings/applications/tokens/new/" class="external-link">this page</a>.</p></li>
+<li><p>Create a new personal access token.</p></li>
+<li><p>Copy the token and use <code><a href="updateZenodoAccessToken.html">updateZenodoAccessToken()</a></code> to save it.</p></li>
+</ol><p>The token will be saved to your <code>.Renviron</code> file for permanent storage across
+R sessions. The function automatically validates tokens and will clear invalid
+or expired tokens.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="listData.html">listData</a></code></p></div>
+    <div class="dont-index"><p><code><a href="listData.html">listData</a></code>, <code><a href="updateZenodoAccessToken.html">updateZenodoAccessToken</a></code></p></div>
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
-    <p>Mathias Harrer <a href="mailto:mathias.h.harrer@gmail.com">mathias.h.harrer@gmail.com</a></p>
+    <p>Mathias Harrer <a href="mailto:m.harrer@vu.nl">m.harrer@vu.nl</a></p>
     </div>
 
     <div class="section level2">
@@ -130,8 +151,8 @@ as a simple <code>data.frame</code>.</p>
 <span class="r-in"><span><span class="co"># Get latest version of the 'depression-psyctr' database</span></span></span>
 <span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu">getData</span><span class="op">(</span><span class="st">"depression-psyctr"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Get version 22.2.0 of the 'depression-psyctr' database</span></span></span>
-<span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu">getData</span><span class="op">(</span><span class="st">"depression-psyctr"</span>, <span class="st">"22.2.0"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Get version 24.0.2 of the 'depression-psyctr' database</span></span></span>
+<span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu">getData</span><span class="op">(</span><span class="st">"depression-psyctr"</span>, <span class="st">"24.0.2"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Show variable description</span></span></span>
 <span class="r-in"><span><span class="va">d</span><span class="op">$</span><span class="fu">variableDescription</span><span class="op">(</span><span class="op">)</span></span></span>

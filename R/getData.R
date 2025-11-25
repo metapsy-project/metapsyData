@@ -55,6 +55,35 @@
 #' If `include.metadata` is `FALSE`, the function will return the dataset
 #' as a simple `data.frame`.
 #'
+#' @details
+#'
+#' The function can work with or without a Zenodo API access token. While a token
+#' is not required, setting one provides several benefits:
+#'
+#' \itemize{
+#'   \item **Higher rate limits**: Authenticated requests can fetch up to 100 records
+#'   per page, compared to 25 records per page for unauthenticated requests. This
+#'   significantly speeds up data retrieval for databases with many versions.
+#'   \item **Reduced rate limiting**: Authenticated requests are less likely to hit
+#'   Zenodo's rate limits, especially when fetching multiple pages of results.
+#'   \item **Automatic pagination**: The function automatically handles pagination to
+#'   retrieve all versions, but this is faster with a token due to larger page sizes.
+#' }
+#'
+#' If no token is set, the function will optionally prompt you to set one. You can
+#' also set or update your token at any time using [updateZenodoAccessToken()].
+#'
+#' To create a Zenodo API access token:
+#' \enumerate{
+#'   \item Log into your Zenodo account.
+#'   \item Visit [this page](https://zenodo.org/account/settings/applications/tokens/new/).
+#'   \item Create a new personal access token.
+#'   \item Copy the token and use [updateZenodoAccessToken()] to save it.
+#' }
+#'
+#' The token will be saved to your `.Renviron` file for permanent storage across
+#' R sessions. The function automatically validates tokens and will clear invalid
+#' or expired tokens.
 #'
 #' @examples
 #' \dontrun{
@@ -64,8 +93,8 @@
 #' # Get latest version of the 'depression-psyctr' database
 #' d <- getData("depression-psyctr")
 #'
-#' # Get version 22.2.0 of the 'depression-psyctr' database
-#' d <- getData("depression-psyctr", "22.2.0")
+#' # Get version 24.0.2 of the 'depression-psyctr' database
+#' d <- getData("depression-psyctr", "24.0.2")
 #'
 #' # Show variable description
 #' d$variableDescription()
@@ -78,17 +107,17 @@
 #' runMetaAnalysis(d)
 #' }
 #'
-#' @author Mathias Harrer \email{mathias.h.harrer@@gmail.com}
+#' @author Mathias Harrer \email{m.harrer@@vu.nl}
 #'
-#' @seealso \code{\link{listData}}
+#' @seealso \code{\link{listData}}, \code{\link{updateZenodoAccessToken}}
 #'
 #'
 #' @importFrom crayon green magenta
-#' @importFrom httr GET status_code
+#' @importFrom httr GET
 #' @importFrom jsonlite fromJSON
 #' @importFrom RCurl getURL
 #' @importFrom readr parse_number locale
-#' @importFrom utils read.csv browseURL URLencode
+#' @importFrom utils read.csv browseURL
 #' @importFrom R6 R6Class
 #'
 #' @export getData
@@ -147,160 +176,411 @@ getData = function(shorthand,
   #                                                             #
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-  target.doi = dataIndex[shorthand, "doi"]
-  all.records = list()
-  page = 1
-  size = 99
-  
-  repeat {
-    query = paste0("conceptdoi:\"", target.doi, "\"")
-    url = paste0(
-      "https://zenodo.org/api/records?",
-      "q=", utils::URLencode(query, reserved = TRUE),
-      "&size=", size,
-      "&page=", page,
-      "&all_versions=true"
-    )
-    
-    response = httr::GET(url)
-    
-    if (httr::status_code(response) != 200) {
-      stop("Zenodo API returned status code ", httr::status_code(response), 
-           ". The API may be temporarily unavailable, likely due to rate limiting for your IP address. Please try again later.")
+  # Helper function to save token to .Renviron file
+  save_token_to_renviron = function(token) {
+    renviron_path = file.path(Sys.getenv("HOME"), ".Renviron")
+
+    # Read existing .Renviron file if it exists
+    if (file.exists(renviron_path)) {
+      renviron_content = readLines(renviron_path, warn = FALSE)
+    } else {
+      renviron_content = character(0)
     }
-    
-    response.content = rawToChar(response[["content"]])
-    if (grepl("^\\s*<!DOCTYPE", response.content) || grepl("^\\s*<html", response.content)) {
-      stop("Zenodo API returned HTML instead of JSON. This may indicate the API is temporarily unavailable or rate limiting requests. Please try again later.")
+
+    # Check if ZENODO_ACCESS_TOKEN already exists
+    token_line = paste0("ZENODO_ACCESS_TOKEN=", token)
+    token_pattern = "^ZENODO_ACCESS_TOKEN="
+
+    # Find existing token line
+    token_index = grep(token_pattern, renviron_content)
+
+    if (length(token_index) > 0) {
+      # Update existing token
+      renviron_content[token_index] = token_line
+      message("- ", crayon::green("[OK] "), "Updated existing token in .Renviron file.")
+    } else {
+      # Append new token
+      renviron_content = c(renviron_content, "", token_line)
+      message("- ", crayon::green("[OK] "), "Added token to .Renviron file.")
     }
-    
-    page.data = tryCatch({
-      jsonlite::fromJSON(response.content)
+
+    # Write back to file
+    tryCatch({
+      writeLines(renviron_content, renviron_path)
+      message("- ", crayon::green("[OK] "), "Token saved permanently to: ", renviron_path)
+      message("  Note: Please restart R/RStudio for the changes to take effect.")
     }, error = function(e) {
-      stop("Failed to parse JSON response from Zenodo API. ",
-           "This may indicate the API is temporarily unavailable. ",
-           "Please try again later. Original error: ", e$message)
+      warning("Could not write to .Renviron file: ", e$message,
+              "\nToken will only be available for this R session.")
     })
-    
-    if (is.null(page.data$hits) || length(page.data$hits$hits) == 0) {
-      break
-    }
-    
-    records = page.data$hits$hits
-    all.records = c(all.records, records)
-    
-    if (length(records) < size) {
-      break
-    }
-    page = page + 1
   }
-  
-  if (length(all.records) == 0) {
-    stop("No metadata found for shorthand '", shorthand, "' with DOI '", target.doi, "'.")
+
+  # Helper function to read token from .Renviron file
+  read_token_from_renviron = function() {
+    renviron_path = file.path(Sys.getenv("HOME"), ".Renviron")
+
+    if (file.exists(renviron_path)) {
+      renviron_content = readLines(renviron_path, warn = FALSE)
+      token_line = grep("^ZENODO_ACCESS_TOKEN=", renviron_content, value = TRUE)
+
+      if (length(token_line) > 0) {
+        # Extract token value (handle cases with or without quotes)
+        token = sub("^ZENODO_ACCESS_TOKEN=", "", token_line[1])
+        token = gsub('^["\']|["\']$', "", token)  # Remove quotes if present
+        token = trimws(token)
+        return(token)
+      }
+    }
+    return("")
   }
-  
-  n.records = length(all.records$conceptdoi)
-  
-  metadata = data.frame(
-    conceptdoi = all.records$conceptdoi,
-    doi = all.records$doi,
-    modified = all.records$updated,
-    created = all.records$created,
-    id = all.records$id,
-    conceptrecid = all.records$conceptrecid,
-    doi_url = all.records$doi_url,
-    title = all.records$title,
-    stringsAsFactors = FALSE
-  )
-  
-  metadata$metadata = lapply(1:n.records, function(i) {
-    meta.df = all.records$metadata
-    list(
-      title = if (i <= nrow(meta.df) && !is.null(meta.df$title[i])) meta.df$title[i] else NA_character_,
-      doi = if (i <= nrow(meta.df) && !is.null(meta.df$doi[i])) meta.df$doi[i] else NA_character_,
-      publication_date = if (i <= nrow(meta.df) && !is.null(meta.df$publication_date[i])) meta.df$publication_date[i] else NA_character_,
-      description = if (i <= nrow(meta.df) && !is.null(meta.df$description[i])) meta.df$description[i] else NA_character_,
-      access_right = if (i <= nrow(meta.df) && !is.null(meta.df$access_right[i])) meta.df$access_right[i] else NA_character_,
-      creators = if (i <= nrow(meta.df) && !is.null(meta.df$creators[i])) meta.df$creators[i] else NA,
-      related_identifiers = if (i <= nrow(meta.df) && !is.null(meta.df$related_identifiers[i])) {
-        if (is.data.frame(meta.df$related_identifiers[i])) {
-          as.list(meta.df$related_identifiers[i, , drop = FALSE])
-        } else {
-          meta.df$related_identifiers[[i]]
-        }
-      } else {
-        list(list(identifier = NA_character_))
-      },
-      version = if (i <= nrow(meta.df) && !is.null(meta.df$version[i])) meta.df$version[i] else NA_character_,
-      license = if (i <= nrow(meta.df) && "id" %in% colnames(meta.df) && !is.null(meta.df$id[i])) meta.df$id[i] else NA_character_,
-      upload_type = if (i <= nrow(meta.df) && "resource_type.type" %in% colnames(meta.df) && !is.null(meta.df$`resource_type.type`[i])) meta.df$`resource_type.type`[i] else NA_character_
+
+  # Helper function to validate Zenodo token
+  validate_zenodo_token = function(token) {
+    if (token == "") return(FALSE)
+
+    # Make a simple test API call to check if token is valid
+    # Try to use a larger page size - if token is valid, this should work
+    # If invalid, we'll get an error about page size
+    test_url = paste0(
+      "https://zenodo.org/api/records?",
+      "q=conceptdoi:10.5281/zenodo.1234567890",  # Dummy DOI for validation
+      "&size=100&access_token=", token
     )
-  })
-  
-  metadata$files = lapply(1:n.records, function(i) {
-    if (!is.null(all.records$files) && i <= length(all.records$files) && !is.null(all.records$files[[i]])) {
-      file.df = all.records$files[[i]]
-      if (is.data.frame(file.df) && nrow(file.df) > 0) {
-        lapply(1:nrow(file.df), function(j) {
-          list(
-            links = list(
-              download = if (!is.null(file.df$self[j])) file.df$self[j] else NA_character_,
-              self = if (!is.null(file.df$self[j])) file.df$self[j] else NA_character_
-            ),
-            key = if (!is.null(file.df$key[j])) file.df$key[j] else NA_character_,
-            size = if (!is.null(file.df$size[j])) file.df$size[j] else NA_integer_,
-            checksum = if (!is.null(file.df$checksum[j])) file.df$checksum[j] else NA_character_
-          )
-        })
+
+    test_response = tryCatch({
+      httr::GET(test_url, httr::timeout(5))
+    }, error = function(e) {
+      return(NULL)
+    })
+
+    if (is.null(test_response)) return(FALSE)
+
+    status = httr::status_code(test_response)
+    response_text = rawToChar(test_response[["content"]])
+
+    # If we get 200, token is valid
+    # If we get 400 with page size error, token is invalid
+    # If we get 401 (unauthorized), token is invalid
+    if (status == 200) return(TRUE)
+    if (status == 401) return(FALSE)
+    if (status == 400 && grepl("Page size cannot be greater than 25", response_text)) {
+      return(FALSE)  # Token doesn't allow larger page size, so it's invalid
+    }
+
+    # For other status codes (like 404), assume token is valid (auth worked)
+    return(TRUE)
+  }
+
+  # Get Zenodo access token from environment variable (if available)
+  zenodo_token = Sys.getenv("ZENODO_ACCESS_TOKEN", unset = "")
+
+  # If not in environment, try reading from .Renviron file
+  if (zenodo_token == "") {
+    zenodo_token = read_token_from_renviron()
+    if (zenodo_token != "") {
+      # Load it into current session
+      Sys.setenv(ZENODO_ACCESS_TOKEN = zenodo_token)
+      message("- ", crayon::green("[OK] "), "Token loaded from .Renviron file.")
+    }
+  }
+
+  # Validate token if present
+  if (zenodo_token != "") {
+    message("- ", crayon::magenta("[INFO] "), "Validating Zenodo API access token...")
+    if (!validate_zenodo_token(zenodo_token)) {
+      message("- ", crayon::magenta("[WARNING] "), "Token appears to be invalid or expired. Clearing token.")
+      zenodo_token = ""
+      Sys.unsetenv("ZENODO_ACCESS_TOKEN")
+      # Also remove from .Renviron if possible
+      tryCatch({
+        renviron_path = file.path(Sys.getenv("HOME"), ".Renviron")
+        if (file.exists(renviron_path)) {
+          renviron_content = readLines(renviron_path, warn = FALSE)
+          renviron_content = renviron_content[!grepl("^ZENODO_ACCESS_TOKEN=", renviron_content)]
+          writeLines(renviron_content, renviron_path)
+        }
+      }, error = function(e) {
+        # Silently fail - user can manually remove it
+      })
+    } else {
+      message("- ", crayon::green("[OK] "), "Token is valid.")
+    }
+  }
+
+  # Optional token setup if not available
+  if (zenodo_token == "") {
+    message("\n", crayon::magenta("[INFO] "),
+            "No Zenodo API Access Token is set.")
+
+    # Ask if user wants to set a token to avoid rate limits
+    user_response = readline(
+      paste0("\nWould you like to set a Zenodo API Access Token to avoid rate limits? (Y/n): ")
+    )
+
+    if (tolower(trimws(user_response)) %in% c("y", "yes", "")) {
+      zenodo_token_url = "https://zenodo.org/account/settings/applications/tokens/new/"
+
+      # Ask if user wants to be directed to the URL
+      user_response_url = readline(
+        paste0("\nWould you like to be directed to the URL where you can create ",
+               "a Zenodo API token? (Y/n): ")
+      )
+
+      if (tolower(trimws(user_response_url)) %in% c("y", "yes", "")) {
+        message("- ", crayon::green("[OK] "), "Opening Zenodo token creation page...")
+        utils::browseURL(zenodo_token_url)
+      }
+
+      # Ask for the API key
+      message("\nPlease paste your Zenodo API Access Token below.")
+      message("(You can find it at: ", zenodo_token_url, ")")
+      message("(You can paste it with or without quotes)")
+      zenodo_token = readline("Zenodo API Access Token: ")
+      zenodo_token = trimws(zenodo_token)
+      # Remove quotes if user accidentally included them
+      zenodo_token = gsub('^["\']|["\']$', "", zenodo_token)
+
+      if (zenodo_token == "") {
+        message("- ", crayon::magenta("[INFO] "), "No token provided. Continuing without token (rate limits may apply).")
+        zenodo_token = ""
       } else {
-        list()
+        # Save the token for the current session
+        Sys.setenv(ZENODO_ACCESS_TOKEN = zenodo_token)
+        message("- ", crayon::green("[OK] "), "Token saved for this R session.")
+
+        # Save to .Renviron file for permanence
+        save_token_to_renviron(zenodo_token)
       }
     } else {
-      list()
+      message("- ", crayon::magenta("[INFO] "), "Continuing without token. Rate limits may apply.")
     }
-  })
-  
-  if (!is.null(all.records$links)) {
-    metadata$links = lapply(1:n.records, function(i) {
-      if (is.data.frame(all.records$links) && i <= nrow(all.records$links)) {
-        as.list(all.records$links[i, , drop = FALSE])
-      } else {
-        list()
+  }
+
+  # Use the public records API instead of deposit API
+  # The deposit API only returns deposits owned by the authenticated user
+  # The records API can access public records by conceptdoi
+  conceptdoi = dataIndex[shorthand, "doi"]
+
+  # Determine page size based on authentication
+  # Unauthenticated requests are limited to 25, authenticated can use up to 100
+  # This will be adjusted in fetch_page if token is invalid
+  page_size = if (zenodo_token != "") 100 else 25
+
+  # Function to fetch a single page of results
+  fetch_page = function(page = 1, use_token = TRUE) {
+    # Build API URL - use records API with conceptdoi query
+    # This works for public records without requiring ownership
+    current_page_size = if (use_token && zenodo_token != "") 100 else 25
+    api_url = paste0(
+      "https://zenodo.org/api/records?",
+      "q=conceptdoi:", conceptdoi,
+      "&all_versions=1&size=", current_page_size,
+      "&page=", page
+    )
+
+    # Add token if available and requested
+    if (use_token && zenodo_token != "") {
+      api_url = paste0(api_url, "&access_token=", zenodo_token)
+    }
+
+    # Make API request
+    response = httr::GET(api_url)
+    status = httr::status_code(response)
+    response_text = rawToChar(response[["content"]])
+
+    # Check if request was successful
+    if (status != 200) {
+      # If we get a 400 error about page size with token, token might be invalid
+      if (status == 400 && use_token && zenodo_token != "" &&
+          grepl("Page size cannot be greater than 25", response_text)) {
+        message("- ", crayon::magenta("[WARNING] "),
+                "Token appears invalid (page size error). Retrying without token...")
+        # Retry without token
+        return(fetch_page(page, use_token = FALSE))
       }
-    })
+      stop(
+        "Failed to retrieve metadata from Zenodo API. ",
+        "HTTP Status: ", status, "\n",
+        "Response: ", response_text
+      )
+    }
+
+    # Parse response - records API returns different structure
+    response_data = jsonlite::fromJSON(response_text)
+
+    return(response_data)
+  }
+
+  # Fetch first page
+  if (zenodo_token != "") {
+    message("- ", crayon::green("[OK] "), "Using Zenodo API access token.")
+  }
+
+  response_data = fetch_page(1)
+
+  # Determine actual page size being used (might be 25 if token was invalid)
+  # Check by looking at the number of records returned
+  if ("hits" %in% names(response_data) && "hits" %in% names(response_data$hits)) {
+    actual_page_size = length(response_data$hits$hits)
+    # If we got 25 records and have a token, token might have been invalidated
+    if (actual_page_size == 25 && zenodo_token != "" && page_size == 100) {
+      message("- ", crayon::magenta("[INFO] "),
+              "Using smaller page size (25). Token may not be valid for this request.")
+      page_size = 25
+      zenodo_token = ""  # Don't use token for subsequent requests
+    }
   } else {
-    metadata$links = lapply(1:n.records, function(i) list())
+    actual_page_size = length(response_data)
   }
-  
-  if (!is.null(all.records$state)) {
-    metadata$state = all.records$state
-  }
-  if (!is.null(all.records$submitted)) {
-    metadata$submitted = all.records$submitted
-  }
-  
-  metadata = metadata[metadata$conceptdoi == target.doi & !is.na(metadata$conceptdoi), ]
 
+  # Check pagination info
+  total_records = if ("hits" %in% names(response_data) && "total" %in% names(response_data$hits)) {
+    response_data$hits$total
+  } else if ("hits" %in% names(response_data) && "hits" %in% names(response_data$hits)) {
+    length(response_data$hits$hits)
+  } else {
+    length(response_data)
+  }
 
-  versions = sapply(metadata$metadata, function(x) x$version)
-  
-  if (is.null(version)) {
-    version.nums = lapply(versions, function(v) {
-      as.numeric(strsplit(v, "\\.")[[1]])
+  # Records API returns a list with 'hits' containing the records
+  if ("hits" %in% names(response_data) && "hits" %in% names(response_data$hits)) {
+    all_records = response_data$hits$hits
+  } else {
+    # Fallback: try direct access if structure is different
+    all_records = response_data
+  }
+
+  # Fetch additional pages if needed
+  if (total_records > page_size) {
+    total_pages = ceiling(total_records / page_size)
+    if (total_pages > 1) {
+      message("- ", crayon::green("[OK] "), "Found ", total_records, " versions. Fetching all pages (", total_pages, " pages)...")
+      for (page in 2:total_pages) {
+        # Use token only if it's still valid
+        page_data = fetch_page(page, use_token = (zenodo_token != ""))
+        page_records = if ("hits" %in% names(page_data) && "hits" %in% names(page_data$hits)) {
+          page_data$hits$hits
+        } else {
+          page_data
+        }
+        # Append records to the list
+        if (is.list(all_records) && is.list(page_records)) {
+          all_records = append(all_records, page_records)
+        } else {
+          all_records = c(all_records, page_records)
+        }
+      }
+      message("- ", crayon::green("[OK] "), "Retrieved all ", length(all_records), " versions.")
+    }
+  }
+
+  records = all_records
+
+  # Convert records API structure to match deposit API structure for compatibility
+  # Records API has: records$metadata$version, records$metadata$related_identifiers, etc.
+  # We need to normalize this to work with existing code
+  if (length(records) > 0 && is.data.frame(records)) {
+    # If it's already a data frame, check structure
+    if ("conceptdoi" %in% colnames(records)) {
+      metadata = records[records$conceptdoi == conceptdoi, ]
+    } else {
+      metadata = records
+    }
+  } else if (length(records) > 0) {
+    # Convert list of records to data frame-like structure
+    # Extract key fields from records API structure
+    metadata_list = lapply(records, function(rec) {
+      # Helper to safely get nested values
+      get_val = function(x, default = NA) {
+        if (is.null(x)) default else x
+      }
+
+      list(
+        conceptdoi = get_val(rec$conceptdoi, get_val(rec$metadata$conceptdoi)),
+        doi = get_val(rec$doi, get_val(rec$metadata$doi)),
+        modified = get_val(rec$updated, get_val(rec$modified)),
+        metadata = list(
+          version = get_val(rec$metadata$version),
+          title = get_val(rec$metadata$title),
+          license = get_val(rec$metadata$license$id, get_val(rec$metadata$license)),
+          related_identifiers = get_val(rec$metadata$related_identifiers, list(list(identifier = NA)))
+        ),
+        files = list(list(links = list(
+          download = if (!is.null(rec$files) && length(rec$files) > 0) {
+            get_val(rec$files[[1]]$links$download)
+          } else {
+            NA
+          }
+        )))
+      )
     })
-    max.len = max(sapply(version.nums, length))
-    version.nums = lapply(version.nums, function(vn) {
-      c(vn, rep(0, max.len - length(vn)))
-    })
-    max.version.idx = which.max(sapply(version.nums, function(vn) {
-      sum(vn * 10^((length(vn):1) - 1))
+
+    # Convert to data frame (simplified structure)
+    metadata = do.call(rbind, lapply(metadata_list, function(x) {
+      data.frame(
+        conceptdoi = x$conceptdoi,
+        doi = x$doi,
+        modified = x$modified,
+        version = x$metadata$version,
+        title = x$metadata$title,
+        license = x$metadata$license,
+        stringsAsFactors = FALSE
+      )
     }))
-    version = versions[max.version.idx]
+
+    # Add nested structures as lists
+    metadata$metadata = lapply(metadata_list, function(x) x$metadata)
+    metadata$files = lapply(metadata_list, function(x) x$files)
+
+    # Filter by conceptdoi
+    metadata = metadata[metadata$conceptdoi == conceptdoi, ]
+  } else {
+    metadata = data.frame()
+  }
+
+  # Check if metadata was found
+  if (nrow(metadata) == 0) {
+    stop("No metadata found for shorthand '", shorthand,
+         "'. Please check that the shorthand is correct.")
+  }
+
+  # Helper function to extract version from metadata (handles both structures)
+  get_version = function(meta_row) {
+    if (is.list(meta_row$metadata)) {
+      meta_row$metadata$version
+    } else if ("version" %in% names(meta_row)) {
+      meta_row$version
+    } else {
+      NA
+    }
+  }
+
+  # Print retrieved version
+  if (is.null(version)) {
+    # Get version from metadata, handling potential NA values
+    if (nrow(metadata) > 0) {
+      versions = sapply(1:nrow(metadata), function(i) get_version(metadata[i, ]))
+      version = versions[!is.na(versions)][1]
+    } else {
+      version = NA
+    }
+
+    if (is.na(version) || is.null(version)) {
+      stop("Could not determine database version. The metadata may be incomplete.")
+    }
     message("- ", crayon::green("[OK] "), "Retrieving latest version (",
             version, ")...")
   } else {
-    if (!version %in% versions){
-      stop("The specified database version was not found.")
+    if (nrow(metadata) > 0) {
+      versions = sapply(1:nrow(metadata), function(i) get_version(metadata[i, ]))
+      all_versions = versions[!is.na(versions)]
+    } else {
+      all_versions = character(0)
+    }
+
+    if (!version %in% all_versions){
+      stop("The specified database version '", version, "' was not found. ",
+           "Available versions: ", paste(all_versions, collapse = ", "))
     }
     message("- ", crayon::green("[OK] "), "Retrieving version ",
             version, "...")
@@ -374,58 +654,83 @@ getData = function(shorthand,
                }))
 
 
-    version.match = sapply(metadata$metadata, function(x) x$version) == version
-    metadata.filtered = metadata[version.match, ]
-    
-    if (nrow(metadata.filtered) == 0) {
-      stop("Version '", version, "' not found in metadata.")
-    }
-    
-    row = metadata.filtered[1, ]
-    row.metadata = row$metadata[[1]]
-    row.files = row$files[[1]]
-    
-    download.url = if (length(row.files) > 0 && !is.null(row.files[[1]]$links$download)) {
-      row.files[[1]]$links$download
-    } else if (length(row.files) > 0 && !is.null(row.files[[1]]$links$self)) {
-      row.files[[1]]$links$self
-    } else {
-      NA_character_
-    }
-    
-    related.id = if (!is.null(row.metadata$related_identifiers) && length(row.metadata$related_identifiers) > 0) {
-      if (is.list(row.metadata$related_identifiers[[1]]) && !is.null(row.metadata$related_identifiers[[1]]$identifier)) {
-        row.metadata$related_identifiers[[1]]$identifier
-      } else if (is.character(row.metadata$related_identifiers[[1]])) {
-        row.metadata$related_identifiers[[1]]
-      } else {
-        NA_character_
+    # Helper function to safely parse dates
+    safe_as_date = function(x) {
+      # Check for NULL, NA, or empty string more safely
+      if (is.null(x)) {
+        return(as.Date(NA))
       }
-    } else {
-      NA_character_
+      if (length(x) == 0 || (is.character(x) && trimws(x) == "")) {
+        return(as.Date(NA))
+      }
+      # Check for NA values (handles both logical and other types)
+      if (any(is.na(x))) {
+        return(as.Date(NA))
+      }
+
+      # Convert to character if not already
+      if (!is.character(x)) {
+        x = as.character(x)
+      }
+
+      # Try parsing with different formats
+      # First, try standard ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
+      result = tryCatch({
+        # Remove timezone info if present (e.g., "Z" or "+00:00")
+        x_clean = gsub("T.*$", "", gsub("\\+.*$", "", gsub("Z$", "", x)))
+        x_clean = trimws(x_clean)
+        if (x_clean == "") {
+          return(as.Date(NA))
+        }
+        as.Date(x_clean)
+      }, error = function(e) {
+        # Try with format specification
+        tryCatch({
+          as.Date(x, format = "%Y-%m-%d")
+        }, error = function(e2) {
+          # Try other common formats
+          tryCatch({
+            as.Date(x, format = "%Y/%m/%d")
+          }, error = function(e3) {
+            # If all else fails, return NA
+            warning("Could not parse date: ", x, ". Returning NA.")
+            as.Date(NA)
+          })
+        })
+      })
+      return(result)
     }
-    
-    metapsyDatabase$new(
-      NA, 
-      row$title, 
-      row.metadata$version, 
-      row$modified %>% as.Date(),
-      paste0("https://raw.githubusercontent.com/metapsy-project/",
-             dataIndex[shorthand, "repo"], "/", version,
-             "/metadata/last_search.txt") %>% RCurl::getURL() %>% as.Date(),
-      row$conceptdoi, 
-      row$doi, 
-      download.url,
-      related.id,
-      paste0("https://docs.metapsy.org/databases/",
-             dataIndex[shorthand, "url"], "/"),
-      row.metadata$license,
-      paste0("https://raw.githubusercontent.com/metapsy-project/",
-             dataIndex[shorthand, "repo"], "/", version,
-             "/metadata/variable_description.json") %>%
-        RCurl::getURL() %>%
-        jsonlite::fromJSON()
-    ) -> metapsyDatabaseObject
+
+    # Collect metadata
+    metadata %>%
+      {.[.$metadata$version == version,]} %>%
+      with(.,{
+        # Parse last_search date from GitHub
+        last_search_url = paste0("https://raw.githubusercontent.com/metapsy-project/",
+                                 dataIndex[shorthand, "repo"], "/", version,
+                                 "/metadata/last_search.txt")
+        last_search_raw = tryCatch({
+          RCurl::getURL(last_search_url) %>% trimws()
+        }, error = function(e) {
+          warning("Could not retrieve last_search date from: ", last_search_url)
+          return("")
+        })
+        last_search_date = safe_as_date(last_search_raw)
+
+        metapsyDatabase$new(
+          NA, title, metadata$version, safe_as_date(modified),
+          last_search_date,
+          conceptdoi, doi, files[[1]]$links$download,
+          metadata$related_identifiers[[1]]$identifier,
+          paste0("https://docs.metapsy.org/databases/",
+                 dataIndex[shorthand, "url"], "/"),
+          metadata$license,
+          paste0("https://raw.githubusercontent.com/metapsy-project/",
+                 dataIndex[shorthand, "repo"], "/", version,
+                 "/metadata/variable_description.json") %>%
+            RCurl::getURL() %>%
+            jsonlite::fromJSON())
+      }) -> metapsyDatabaseObject
   }
 
 
@@ -523,5 +828,137 @@ print.metapsyDatabase = function(x, first=NULL, last=NULL, ...){
   }
 }
 
+#' Update Zenodo API Access Token
+#'
+#' This function allows you to update or set your Zenodo API access token.
+#' The token will be saved to your `.Renviron` file for permanent storage
+#' and will also be set for the current R session.
+#'
+#' @usage updateZenodoAccessToken(token = NULL)
+#'
+#' @param token \code{character}. The Zenodo API access token. If \code{NULL}
+#' (default), the function will interactively prompt you to enter the token.
+#' You can create a token [here](https://zenodo.org/account/settings/applications/tokens/new/).
+#'
+#' @details
+#' The function performs the following actions:
+#' \itemize{
+#'   \item If \code{token} is \code{NULL}, prompts you to enter the token
+#'   \item Strips any quotes from the token if accidentally included
+#'   \item Saves the token to your `.Renviron` file (located at `~/.Renviron`)
+#'   \item Updates the token in your current R session
+#'   \item If a token already exists in `.Renviron`, it will be updated
+#' }
+#'
+#' After updating the token, you may need to restart R/RStudio for the changes
+#' to take full effect, though the token will be available in the current
+#' session immediately.
+#'
+#' @return Invisibly returns \code{TRUE} if successful, \code{FALSE} otherwise.
+#'
+#' @examples
+#' \dontrun{
+#' # Update token interactively
+#' updateZenodoAccessToken()
+#'
+#' # Update token directly
+#' updateZenodoAccessToken("your_token_here")
+#' }
+#'
+#' @author Mathias Harrer \email{mathias.h.harrer@@gmail.com}
+#'
+#' @seealso \code{\link{getData}}
+#'
+#' @importFrom crayon green magenta
+#' @importFrom utils browseURL
+#'
+#' @export updateZenodoAccessToken
+updateZenodoAccessToken = function(token = NULL) {
 
+  zenodo_token_url = "https://zenodo.org/account/settings/applications/tokens/new/"
+
+  # If token not provided, ask for it
+  if (is.null(token)) {
+    message("\n", crayon::magenta("[INFO] "),
+            "Updating Zenodo API Access Token.")
+
+    # Ask if user wants to be directed to the URL
+    user_response = readline(
+      paste0("\nWould you like to be directed to the URL where you can create ",
+             "a Zenodo API token? (Y/n): ")
+    )
+
+    if (tolower(trimws(user_response)) %in% c("y", "yes", "")) {
+      message("- ", crayon::green("[OK] "), "Opening Zenodo token creation page...")
+      utils::browseURL(zenodo_token_url)
+    }
+
+    # Ask for the API key
+    message("\nPlease paste your Zenodo API Access Token below.")
+    message("(You can find it at: ", zenodo_token_url, ")")
+    message("(You can paste it with or without quotes)")
+    token = readline("Zenodo API Access Token: ")
+  }
+
+  # Clean the token
+  token = trimws(token)
+  # Remove quotes if user accidentally included them
+  token = gsub('^["\']|["\']$', "", token)
+
+  if (token == "") {
+    stop("No token provided. Please provide a valid Zenodo API Access Token.")
+  }
+
+  # Helper function to save token to .Renviron file
+  save_token_to_renviron = function(token) {
+    renviron_path = file.path(Sys.getenv("HOME"), ".Renviron")
+
+    # Read existing .Renviron file if it exists
+    if (file.exists(renviron_path)) {
+      renviron_content = readLines(renviron_path, warn = FALSE)
+    } else {
+      renviron_content = character(0)
+    }
+
+    # Check if ZENODO_ACCESS_TOKEN already exists
+    token_line = paste0("ZENODO_ACCESS_TOKEN=", token)
+    token_pattern = "^ZENODO_ACCESS_TOKEN="
+
+    # Find existing token line
+    token_index = grep(token_pattern, renviron_content)
+
+    if (length(token_index) > 0) {
+      # Update existing token
+      renviron_content[token_index] = token_line
+      message("- ", crayon::green("[OK] "), "Updated existing token in .Renviron file.")
+    } else {
+      # Append new token
+      renviron_content = c(renviron_content, "", token_line)
+      message("- ", crayon::green("[OK] "), "Added token to .Renviron file.")
+    }
+
+    # Write back to file
+    tryCatch({
+      writeLines(renviron_content, renviron_path)
+      message("- ", crayon::green("[OK] "), "Token saved permanently to: ", renviron_path)
+      message("  Note: Please restart R/RStudio for the changes to take effect.")
+      return(TRUE)
+    }, error = function(e) {
+      warning("Could not write to .Renviron file: ", e$message,
+              "\nToken will only be available for this R session.")
+      return(FALSE)
+    })
+  }
+
+  # Save the token for the current session
+  Sys.setenv(ZENODO_ACCESS_TOKEN = token)
+  message("- ", crayon::green("[OK] "), "Token saved for this R session.")
+
+  # Save to .Renviron file for permanence
+  success = save_token_to_renviron(token)
+
+  message("\n", crayon::green("[OK] "), "Zenodo API Access Token updated successfully!")
+
+  return(invisible(success))
+}
 
