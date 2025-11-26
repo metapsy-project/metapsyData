@@ -560,7 +560,29 @@ getData = function(shorthand,
     # Get version from metadata, handling potential NA values
     if (nrow(metadata) > 0) {
       versions = sapply(1:nrow(metadata), function(i) get_version(metadata[i, ]))
-      version = versions[!is.na(versions)][1]
+      versions = versions[!is.na(versions)]
+      
+      # Sort versions to get the highest (latest) version
+      # Convert version strings to numeric by removing dots and comparing
+      if (length(versions) > 0) {
+        # Helper function to convert version string to numeric for comparison
+        # Split by dots, pad each part to fixed width, then combine
+        # e.g., "24.0.2" -> "002400000002", "24.0.0" -> "002400000000"
+        version_to_numeric = function(v) {
+          v_parts = strsplit(as.character(v), "\\.")[[1]]
+          # Pad each part to 4 digits to handle versions like "24.0.10" vs "24.0.2"
+          v_padded = paste(sprintf("%04d", suppressWarnings(as.numeric(v_parts))), collapse = "")
+          as.numeric(v_padded)
+        }
+        
+        # Calculate numeric values for all versions
+        version_nums = sapply(versions, version_to_numeric)
+        # Sort by numeric value in descending order (highest first)
+        version_order = order(version_nums, decreasing = TRUE)
+        version = versions[version_order[1]]
+      } else {
+        version = NA
+      }
     } else {
       version = NA
     }
