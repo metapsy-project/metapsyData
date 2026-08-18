@@ -1,54 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/depression.html</loc>
-  </url>
-  <url>
-    <loc>/reference/getData.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/listData.html</loc>
-  </url>
-  <url>
-    <loc>/reference/openDocs.html</loc>
-  </url>
-  <url>
-    <loc>/reference/open_app.html</loc>
-  </url>
-  <url>
-    <loc>/reference/pipe.html</loc>
-  </url>
-  <url>
-    <loc>/reference/print.listData.html</loc>
-  </url>
-  <url>
-    <loc>/reference/print.metapsyDatabase.html</loc>
-  </url>
-  <url>
-    <loc>/reference/print.variableDescription.html</loc>
-  </url>
-  <url>
-    <loc>/reference/suicide.html</loc>
-  </url>
-  <url>
-    <loc>/reference/updateZenodoAccessToken.html</loc>
-  </url>
-  <url>
-    <loc>/reference/variableDescription.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE-text.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/depression.html</loc></url>
+<url><loc>/reference/getData.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/listData.html</loc></url>
+<url><loc>/reference/openDocs.html</loc></url>
+<url><loc>/reference/open_app.html</loc></url>
+<url><loc>/reference/pipe.html</loc></url>
+<url><loc>/reference/print.listData.html</loc></url>
+<url><loc>/reference/print.metapsyDatabase.html</loc></url>
+<url><loc>/reference/print.variableDescription.html</loc></url>
+<url><loc>/reference/suicide.html</loc></url>
+<url><loc>/reference/updateZenodoAccessToken.html</loc></url>
+<url><loc>/reference/variableDescription.html</loc></url>
 </urlset>
+
